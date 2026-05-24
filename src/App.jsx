@@ -818,7 +818,7 @@ export default function GameAssetProcessingWebsite() {
     return () => window.removeEventListener("keydown", onKey);
   }, [selectionMode, selectedBoxIndex, manualBoxes]);
 
-  // 尺寸调整模式快捷键：Delete 清除裁切 / WASD 微调裁切框
+  // 尺寸调整模式快捷键：Delete 清除裁切 / 方向键微调裁切框
   useEffect(() => {
     if (activeTool !== "resize" || !cropSelectionMode) return;
     function onKey(e) {
@@ -840,13 +840,13 @@ export default function GameAssetProcessingWebsite() {
         return;
       }
 
-      // WASD 微调裁切框位置
+      // 方向键微调裁切框位置
       if (cropW > 0 && cropH > 0) {
         const step = e.shiftKey ? 10 : 1;
-        if (e.key === "a" || e.key === "A") { e.preventDefault(); setCropX((x) => Math.max(0, x - step)); }
-        if (e.key === "d" || e.key === "D") { e.preventDefault(); setCropX((x) => Math.min(imgNaturalW - cropW, x + step)); }
-        if (e.key === "w" || e.key === "W") { e.preventDefault(); setCropY((y) => Math.max(0, y - step)); }
-        if (e.key === "s" || e.key === "S") { e.preventDefault(); setCropY((y) => Math.min(imgNaturalH - cropH, y + step)); }
+        if (e.key === "ArrowLeft") { e.preventDefault(); setCropX((x) => Math.max(0, x - step)); }
+        if (e.key === "ArrowRight") { e.preventDefault(); setCropX((x) => Math.min(imgNaturalW - cropW, x + step)); }
+        if (e.key === "ArrowUp") { e.preventDefault(); setCropY((y) => Math.max(0, y - step)); }
+        if (e.key === "ArrowDown") { e.preventDefault(); setCropY((y) => Math.min(imgNaturalH - cropH, y + step)); }
       }
     }
     window.addEventListener("keydown", onKey);
@@ -2662,12 +2662,6 @@ export default function GameAssetProcessingWebsite() {
                                   setShowContextMenu({ x: e.clientX, y: e.clientY, boxIndex: index });
                                 }}
                               >
-                                {/* 标签 */}
-                                <div className={`absolute -top-5 left-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold leading-4 whitespace-nowrap ${
-                                  isSelected ? "bg-violet-400 text-white" : "bg-cyan-400 text-slate-950"
-                                }`}>
-                                  #{index + 1} {box.width}×{box.height}
-                                </div>
                                 {/* 手柄已移除 */}
                               </div>
                             );
@@ -2682,11 +2676,7 @@ export default function GameAssetProcessingWebsite() {
                                 width: `${(Math.abs(drawEnd.x - drawStart.x) / imgNaturalW) * 100}%`,
                                 height: `${(Math.abs(drawEnd.y - drawStart.y) / imgNaturalH) * 100}%`,
                               }}
-                            >
-                              <div className="absolute -top-5 left-0 rounded-md bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-slate-950 leading-4 whitespace-nowrap">
-                                {Math.abs(drawEnd.x - drawStart.x)}×{Math.abs(drawEnd.y - drawStart.y)}
-                              </div>
-                            </div>
+                            />
                           )}
                           {/* 框选提示 */}
                           {showBoxHint && manualBoxes.length === 0 && !isDrawing && (
@@ -2708,7 +2698,7 @@ export default function GameAssetProcessingWebsite() {
                           onMouseUp={handleCropOverlayMouseUp}
                           onMouseLeave={handleCropOverlayMouseUp}
                         >
-                          {/* 已确认的裁切框（含 8 个调整手柄） */}
+                          {/* 已确认的裁切框 */}
                           {cropW > 0 && cropH > 0 && (
                             <div
                               className="absolute border-[3px] border-dashed border-amber-400 bg-amber-400/[0.06]"
@@ -2718,39 +2708,7 @@ export default function GameAssetProcessingWebsite() {
                                 width: `${(cropW / imgNaturalW) * 100}%`,
                                 height: `${(cropH / imgNaturalH) * 100}%`,
                               }}
-                            >
-                              <div className="absolute -top-5 left-0 rounded-md bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-slate-950 leading-4 whitespace-nowrap">
-                                {cropW}×{cropH}
-                              </div>
-                              {/* 8 个调整手柄 */}
-                              {["nw","ne","sw","se","n","s","e","w"].map((pos) => {
-                                const posMap = {
-                                  nw: { top:"0%", left:"0%", x:"0%", y:"0%" },
-                                  ne: { top:"0%", left:"100%", x:"-100%", y:"0%" },
-                                  sw: { top:"100%", left:"0%", x:"0%", y:"-100%" },
-                                  se: { top:"100%", left:"100%", x:"-100%", y:"-100%" },
-                                  n:  { top:"0%", left:"50%", x:"-50%", y:"0%" },
-                                  s:  { top:"100%", left:"50%", x:"-50%", y:"-100%" },
-                                  e:  { top:"50%", left:"100%", x:"-100%", y:"-50%" },
-                                  w:  { top:"50%", left:"0%", x:"0%", y:"-50%" },
-                                };
-                                const curMap = {
-                                  nw:"nwse-resize", ne:"nesw-resize", sw:"nesw-resize", se:"nwse-resize",
-                                  n:"n-resize", s:"s-resize", e:"e-resize", w:"w-resize",
-                                };
-                                return (
-                                  <div
-                                    key={pos}
-                                    className="absolute h-3 w-3 rounded-sm border-2 border-amber-400 bg-slate-900 hover:bg-amber-400 transition-colors"
-                                    style={{
-                                      top: posMap[pos].top, left: posMap[pos].left,
-                                      transform: `translate(${posMap[pos].x}, ${posMap[pos].y})`,
-                                      cursor: curMap[pos],
-                                    }}
-                                  />
-                                );
-                              })}
-                            </div>
+                            />
                           )}
                           {/* 正在绘制的裁切框 */}
                           {isCropDrawing && cropDrawStart && cropDrawEnd && (
@@ -2762,11 +2720,7 @@ export default function GameAssetProcessingWebsite() {
                                 width: `${(Math.abs(cropDrawEnd.x - cropDrawStart.x) / imgNaturalW) * 100}%`,
                                 height: `${(Math.abs(cropDrawEnd.y - cropDrawStart.y) / imgNaturalH) * 100}%`,
                               }}
-                            >
-                              <div className="absolute -top-5 left-0 rounded-md bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-slate-950 leading-4 whitespace-nowrap">
-                                {Math.abs(cropDrawEnd.x - cropDrawStart.x)}×{Math.abs(cropDrawEnd.y - cropDrawStart.y)}
-                              </div>
-                            </div>
+                            />
                           )}
                         </div>
                       )}
@@ -2810,11 +2764,7 @@ export default function GameAssetProcessingWebsite() {
                                 width: `${(box.width / imgNaturalW) * 100}%`,
                                 height: `${(box.height / imgNaturalH) * 100}%`,
                               }}
-                            >
-                              <div className="absolute -top-5 left-0 rounded-md bg-cyan-400 px-1.5 py-0.5 text-[9px] font-bold text-slate-950 leading-4 whitespace-nowrap">
-                                #{index + 1}
-                              </div>
-                            </div>
+                            />
                           ))}
                         </div>
                       )}
@@ -2837,11 +2787,7 @@ export default function GameAssetProcessingWebsite() {
                               width: `${(cropW / imgNaturalW) * 100}%`,
                               height: `${(cropH / imgNaturalH) * 100}%`,
                             }}
-                          >
-                            <div className="absolute -top-5 left-0 rounded-md bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-slate-950 leading-4 whitespace-nowrap">
-                              {cropW}×{cropH}
-                            </div>
-                          </div>
+                          />
                         </div>
                       )}
                     </div>
